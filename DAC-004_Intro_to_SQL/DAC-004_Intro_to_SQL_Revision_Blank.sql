@@ -10,7 +10,12 @@
 -- Sort the result set in ascending order on jobtitle.
 -- humanresources.employee table
 
+
 --Answer
+
+SELECT *
+FROM humanresources.employee
+ORDER BY jobtitle ASC;
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18,6 +23,16 @@
 -- The third column heading is renamed to employee_id. Arranged the output in ascending order by lastname.
 
 --Answer
+
+SELECT 
+	firstname,
+	lastname,
+	businessentityid AS employee_id
+FROM person.person
+ORDER BY lastname ASC;
+
+SELECT *
+FROM person.person;
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -28,6 +43,17 @@
 
 --Answer
 
+SELECT 
+	productid,
+	productnumber,
+	name as productname
+FROM production.product
+WHERE productnumber LIKE 'T%' 
+	AND sellstartdate IS NOT NULL
+ORDER BY productname ASC;
+
+SELECT *
+FROM production.product;
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Q4:From the following table write a query in SQL to calculate the total freight paid by each customer. Return customerid and total freight. 
@@ -37,6 +63,15 @@
 
 --Answer
 
+SELECT 
+	customerid ,
+	SUM(freight) AS total_freight
+FROM sales.salesorderheader
+GROUP BY customerid
+ORDER BY customerid ASC;
+
+SELECT *
+FROM sales.salesorderheader;
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Q5:From the following table write a query in SQL to retrieve the number of employees for each City. Return city and number of employees. 
@@ -46,6 +81,15 @@
 
 --Answer
 
+SELECT 
+	addresstypeid AS city,
+	COUNT(businessentityid) AS number_of_employee
+FROM person.businessentityaddress
+GROUP BY city
+ORDER BY city ASC;
+	
+SELECT *
+FROM person.businessentityaddress;
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Q6: From the following tables write a query in SQL to make a list of contacts who are designated as 'Purchasing Manager'. 
@@ -54,6 +98,26 @@
 -- person.businessentitycontact, person.contacttype, person.person
 
 --Answer
+SELECT *
+FROM person.businessentitycontact;
+
+SELECT *
+FROM person.contacttype;
+
+SELECT *
+FROM person.person;
+
+SELECT 
+	person.businessentityid AS BusinessEntityID, 
+	person.lastname AS LastName,
+	person.firstname AS FirstName
+FROM person.person AS person
+JOIN person.businessentitycontact AS businessentitycontact 
+		ON person.businessentityid = businessentitycontact.PersonID
+JOIN person.contacttype AS contacttype 
+		ON businessentitycontact.ContactTypeID = contacttype.ContactTypeID
+WHERE contacttype.Name = 'Purchasing Manager'
+ORDER BY LastName ASC, FirstName ASC;
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -61,6 +125,18 @@
 -- Return SalesOrderID, total cost. Round to 2 decimal place and add the dollar sign at the front.
 
 --Answer
+
+SELECT *
+FROM sales.salesorderdetail;
+
+SELECT 
+	SUM(unitprice) AS total_cost,
+	salesorderid AS SalesOrderID
+FROM sales.salesorderdetail 
+GROUP BY SalesOrderID
+HAVING  SalesOrderID >100000 ;
+	
+	
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -226,6 +226,13 @@ WHERE birthdate IN (
 
 -- Find all the middle names that contains either A or B or C.
 
+SELECT *
+FROM person.person
+WHERE middlename IN (
+	'A',
+	'B',
+	'C'
+);
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -233,40 +240,71 @@ WHERE birthdate IN (
 -- WHERE clause: LIKE clause
 -- The placement of the wildcard, %, affects what is getting filtered out.
 
+SELECT *
+FROM person.person
+WHERE firstname LIKE 'J%';
+
 -- From the person table, select all the firstname starting with a 'J'
 -- Works very similar to excel find function
+
+SELECT *
+FROM person.person
+WHERE firstname LIKE '%J%';
 
 -- Find J
 
 -- Only works for string!
 
+
+SELECT *
+FROM humanresources.employee;
+WHERE birthdate LIKE '1969-01-29%'; -- not supposed to work as data got problem
+
 -- But what if you know the number of letters in the firstname?
 
 SELECT *
 FROM person.person
-WHERE firstname LIKE 'J___';
+WHERE firstname LIKE 'G___';
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- What if we want firstnames that contains the letter a inside?
 
+SELECT *
+FROM person.person
+WHERE firstname LIKE '%A%';
 
 -- not tallying
 
 -- We have two varying results, we can use things like UPPER() and LOWER() clause
 
+SELECT *
+FROM person.person
+WHERE LOWER(firstname) LIKE '%a%'; 
+
+SELECT *
+FROM person.person
+WHERE UPPER(firstname) LIKE '%A%'; 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- WHERE clause: NOT clause
 
--- From the person table, lastname should not contain A in it.
+SELECT *
+FROM person.person
+WHERE UPPER(lastname) NOT LIKE '%A%'; 
 
 
+-- From the employee table, choose those that do not fall into this date range:
+-- '1977-06-06', '1984-04-30', '1985-05-04'
 
--- From the employee table, choose middle name that contain
-
-
+SELECT *
+FROM humanresources.employee
+WHERE birthdate NOT IN (
+	'1977-06-06', 
+	'1984-04-30',
+	'1985-05-04'
+);
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -282,56 +320,125 @@ GROUP BY gender;
 
 -- From employee table, group by maritalstatus
 
-
+SELECT
+	maritalstatus
+FROM humanresources.employee
+GROUP BY maritalstatus;
 
 -- We can also group more than one column
 
-
-
+SELECT
+	gender,
+	maritalstatus,
+	jobtitle
+FROM humanresources.employee
+GROUP BY gender,
+	maritalstatus,
+	jobtitle;
+	
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- All the AGGREGATES!
 
+SELECT 
+	gender,
+	--COUNT(gender) AS Headcount,
+	--COUNT(*) AS Headcount,
+	COUNT(DISTINCT jobtitle) AS unqiuejobTitle,
+	SUM(vacationhours) AS total_vacation_hours,
+	AVG(vacationhours) AS average_vacation_hours,
+	CEILING(Avg(vacationhours)) AS ceiling_vacation_hours,
+	FLOOR(Avg(vacationhours)) AS floor_vacation_hours,
+	ROUND(Avg(vacationhours)) AS rounded_average,
 
+	MAX(sickleavehours) AS max_sick_hours,
+	MIN(sickleavehours) AS min_sick_hours
+	
+FROM humanresources.employee
+GROUP BY gender;
 
 -- Q2: Analyse if the marital status of each gender affects the number of vacation hours one will take
 -- A2:
 
+SELECT 
+	gender,
+	maritalstatus,
+	AVG(vacationhours) AS average_vacation_hours
+FROM humanresources.employee
+GROUP BY 1,2;
+
 
 -- From employee table, ORDER BY hiredate, ASC and DESC
 
+
 -- hiredate earliest
 
+SELECT *
+FROM humanresources.employee
+ORDER BY hiredate ASC;
 
 -- hiredate latest
+
+SELECT *
+FROM humanresources.employee
+ORDER BY hiredate DESC;
 
 
 -- Sort table using two or more values
 
+SELECT 
+	jobtitle,
+	gender
+FROM humanresources.employee
+ORDER BY jobtitle ASC, gender ASC;
 
 -- Sorting by Average
 
+SELECT 
+	jobtitle,
+	AVG(vacationhours) AS avg_vacation_hours
+FROM humanresources.employee
+GROUP BY jobtitle
+ORDER BY AVG(vacationhours) DESC;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- HAVING clause:
-
+SELECT
+	jobtitle,
+	AVG(sickleavehours) AS average_sick_leavehour
+From humanresources.employee
+GROUP BY jobtitle
+HAVING AVG(sickleavehours) >50; --condition
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Q3: From the customer table, where customer has a personid and a storeid, find the territory that has higher than 40 customers
 -- A3:
 
+SELECT
+	territoryid,
+	COUNT(*) AS Number_of_customers
+FROM sales.customer
+WHERE personid IS NOT NULL
+	AND storeid IS NOT NULL
+GROUP BY territoryid
+HAVING COUNT(*) > 40;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- OFFSET: Using the employee table find the other the other employees except the top 10 oldest employees.
+
+
 SELECT *
 FROM humanresources.employee
 ORDER BY birthdate ASC;
 
-
+SELECT *
+FROM humanresources.employee
+ORDER BY birthdate ASC
+OFFSET 10; --removing first 10
 
 -- Q4: From the salesperson table, where customer has a personid and a storeid, find the territory that has higher than 40 customers
 -- A4:
@@ -345,13 +452,18 @@ ORDER BY birthdate ASC;
 	1) We don't have to generate the entire table to understand what kind of information the table stores.
 	2) Much faster using this compared to generating the entire multi-million row table
 	3) So people don't think you are a noob
+
 */
 
-
-
+SELECT *
+FROM humanresources.employee
+WHERE gender = 'M' -->remove female entries
+--WHERE created_date = '2024-10-29' 
+LIMIT 10;
+-- saves money for companies
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
--- JOINS: INNER
+-- JOINS: INNER (the intersect in a venn diagram)
 
 -- Inner join to get product information along with its subcategory name and category name
 
@@ -364,8 +476,19 @@ FROM production.productsubcategory;
 SELECT *
 FROM production.productcategory;
 
-
-
+SELECT
+	product.productid,
+	product.name AS product_name,
+	productcategory.name AS categoryname,
+	productsubcategory.name AS subcategoryname
+FROM production.product AS product -- data after 'from' is the left table 
+INNER JOIN production.productsubcategory AS productsubcategory -- right table
+		ON product.productsubcategoryid = productsubcategory.productsubcategoryid
+INNER JOIN production.productcategory AS productcategory 
+		on productsubcategory.productcategoryid = productcategory.productcategoryid;
+-- another way to find connections (rightclick on a schema --> choose "ERD for schema")
+do leetcode recap 1 till q5 or q7
+		
 -- Let's create a base table in the humanresources schema, where we are able to get each employee's department history and department name
 
 -- Employee table
@@ -397,7 +520,8 @@ FROM humanresources.department;
 
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- JOINS: LEFT
+-- JOINS: LEFT (everything on the left)
+-- best for debugging
 
 -- List all products along with their total sales quantities, including products that have never been sold. 
 -- For products that have not been sold, display the sales quantity as zero.
